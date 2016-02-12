@@ -1,36 +1,6 @@
-class Square
-  def initialize(x, y)
-    @x, @y = x, y
-  end
-  
-  attr_reader :x, :y
-  
-  def surrounding_squares
-    [ Square.new(@x+1, @y),
-      Square.new(@x, @y+1),
-      Square.new(@x-1, @y),
-      Square.new(@x, @y-1)
-    ]
-  end
-  
-  def ==(other)
-    @x == other.x && @y == other.y
-  end
-  
-  def eql?(other)
-    @x == other.x && @y == other.y
-  end
-  
-  def hash
-    "#{self.class},#{@x},#{@y}".hash
-  end
-  
-  private
-end
-
 class Group
   def initialize
-    @squares = [Square.new(0,0)]
+    @squares = [{x: 0, y: 0}]
   end
   
   attr_reader :squares
@@ -42,7 +12,7 @@ class Group
   def grid_data
     range_y.map do |y| 
       range_x.map do |x| 
-        @squares.any? { |s| s.x == x && s.y == y } ? 1 : 0
+        @squares.any? { |s| s[:x] == x && s[:y] == y } ? 1 : 0
       end
     end
   end
@@ -50,7 +20,7 @@ class Group
   def blot_data
     range_y.map do |y| 
       range_x.concat(range_x.reverse).map do |x| 
-        @squares.any? { |s| s.x == x && s.y == y } ? 1 : 0
+        @squares.any? { |s| s[:x] == x && s[:y] == y } ? 1 : 0
       end
     end
   end
@@ -58,7 +28,7 @@ class Group
   def print(data)
     data.each do |row|
       line = row.map do |column|
-        column == 1 ? '#' : ' '
+        column == 1 ? '█' : ' '
       end.join('')
       puts line
     end
@@ -83,23 +53,29 @@ class Group
   end
   
   def min_x
-    @squares.map(&:x).min
+    @squares.map { |s| s[:x] }.min
   end
   
   def min_y
-    @squares.map(&:y).min
+    @squares.map { |s| s[:y] }.min
   end
   
   def max_x
-    @squares.map(&:x).max
+    @squares.map { |s| s[:x] }.max
   end
   
   def max_y
-    @squares.map(&:y).max
+    @squares.map { |s| s[:y] }.max
   end
   
   def surrounding_squares
-    @squares.map(&:surrounding_squares).flatten.uniq - @squares
+    @squares.map do |s|
+      [ {x: s[:x]+1, y: s[:y]},
+        {x: s[:x], y: s[:y]+1},
+        {x: s[:x]-1, y: s[:y]},
+        {x: s[:x], y: s[:y]-1}
+      ]
+    end.flatten.uniq - @squares 
   end
   
   def random_surrounding_square
@@ -109,7 +85,7 @@ end
 
 group = Group.new
 
-128.times do 
+256.times do 
   group.add_random_square!
 end
 
